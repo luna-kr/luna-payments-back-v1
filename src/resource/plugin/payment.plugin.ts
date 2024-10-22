@@ -189,8 +189,10 @@ export default {
             _type: OrderType,
             _order: { id: string, name: string, products: Array<{ name: string, price: number }> },
             _amount: { suppliedAmount: number, taxFreeAmount: number, vat: number },
-            secret: string,
-            _validHours: number
+            _secret: string,
+            _validHours: number,
+
+            _paymentGateway?: PaymentGateway
         ): Promise<
             {
                 success: true,
@@ -212,6 +214,9 @@ export default {
                 let _price: number = _order.products.map(_product => _product.price).reduce((_previous, _current) => _previous + _current)
                 if(_price !== (_amount.suppliedAmount + _amount.taxFreeAmount)) return { success: false, error: new Error('Invalid product price or total amount.') }
                 const _Payment = new Payment()
+
+                _Payment.payment_gateway = _paymentGateway ?? null
+
                 _Payment.application_id = _applicationId
                 _Payment.currency = Currency.KRW
                 _Payment.order_id = _order.id.replace(/ /gi, '')
@@ -222,7 +227,7 @@ export default {
         
                 _Payment.products = _order.products
         
-                _Payment.secret = secret
+                _Payment.secret = _secret
         
                 _Payment.token = utilityPlugin.getRandomStrings(64)
         
